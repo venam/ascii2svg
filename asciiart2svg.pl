@@ -81,7 +81,7 @@ my $bold = 0;
 
 
 for (<$fh>) {
-
+    last if (/\x1aSAUCE/);
     $max_height++;
 
     my $char = $_;
