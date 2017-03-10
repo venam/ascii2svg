@@ -54,12 +54,15 @@ my %colorscheme = (
 );
 my @colors_index = ('black','red','green','yellow','cyan','magenta','blue','white');
 my $default_background = '#1c1c1a';
-my $pixel_hor_size = $pixel_size/2.0+1.15;
-my $pixel_ver_size = $pixel_size+1.20;
+my $pixel_hor_size = $pixel_size/2.3+1;
+my $b_hor_size = $pixel_size/2.1+1.5;
+my $pixel_ver_size = $pixel_size+1.2;
+my $b_ver_size = $pixel_size+1.59;
 my $start_x = $pixel_size/2.0;
 my $start_y = $pixel_size+2;
 my ($x,$y) = ($start_x,$start_y);
 my $output = "";
+my $back_output = "";
 my $max_width = 0;
 my $max_height = 0;
 #default to black colorscheme
@@ -105,6 +108,9 @@ for (<$fh>) {
                 if ($c eq 'C') {
                     for (1..$state_value) {
                         $width++;
+                        if ($bg_color ne 'none') {
+                            $back_output .= "<rect x='$x' fill='$bg_color' y='$y' width='$b_hor_size' height='$b_ver_size'/>";
+                        }
                         $x += $pixel_hor_size;
                     }
                 }
@@ -142,6 +148,16 @@ for (<$fh>) {
                         $chosen_col = 'l_'.$chosen_col if ($bold == 1);
                         $fg_color = $colorscheme{$chosen_col};
                     }
+                    unless ($bg_col eq 'nil') {
+                        if ($bg_col == 0) {
+                            $bg_color = 'none';
+                        }
+                        else {
+                            my $chosen_col = $colors_index[$bg_col];
+                            $chosen_col = 'l_'.$chosen_col if ($bold == 1);
+                            $bg_color = $colorscheme{$chosen_col};
+                        }
+                    }
                 }
                 $state = 'normal';
                 $state_value = '';
@@ -165,6 +181,10 @@ for (<$fh>) {
         }
 
         $width++;
+        if ($bg_color ne 'none') {
+            $back_output .= "<rect x='$x' fill='$bg_color' y='$y' width='$b_hor_size' height='$b_ver_size'/>";
+        }
+
         $output .= "<text fill='$fg_color' x='$x' y='$y' style='font-family:$font_name;'>
     ";
         $output .= "$c";
@@ -192,7 +212,7 @@ $output = "<?xml version='1.0' encoding='utf-8' standalone='no'?>
     style='background-color: $default_background;'
     xmlns='http://www.w3.org/2000/svg'>
 
-<g style='font-size: ${pixel_size}px'>".$output;
+<g style='font-size: ${pixel_size}px'>".$back_output ."\n".$output;
 
 
 $output .=  "</g>\n"."</svg>";
