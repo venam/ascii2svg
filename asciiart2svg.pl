@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
+use HTML::Entities();
 
 =head1
 amiga ascii 2 svg
@@ -30,7 +31,13 @@ unless (scalar(@ARGV)) {
     exit;
 }
 
-open (my $fh, $ARGV[0]) or die $!;
+my $fh;
+if ($ARGV[0] eq '-') {
+    $fh = \*STDIN;
+}
+else {
+    open ($fh, $ARGV[0]) or die $!;
+}
 
 my $font_name = 'Topaz a600a1200a400';
 my $pixel_size = 12;
@@ -187,7 +194,7 @@ for (<$fh>) {
 
         $output .= "<text fill='$fg_color' x='$x' y='$y' style='font-family:$font_name;'>
     ";
-        $output .= "$c";
+        $output .= HTML::Entities::encode_numeric("$c");
         $output .= "</text>";
         $x += $pixel_hor_size;
     }
