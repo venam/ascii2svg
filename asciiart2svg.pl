@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use HTML::Entities();
 
 =head1
 amiga ascii 2 svg
@@ -194,7 +193,7 @@ for (<$fh>) {
 
         $output .= "<text fill='$fg_color' x='$x' y='$y' style='font-family:$font_name;'>
     ";
-        $output .= HTML::Entities::encode_numeric("$c");
+        $output .= "$c";
         $output .= "</text>";
         $x += $pixel_hor_size;
     }
