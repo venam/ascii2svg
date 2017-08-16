@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Getopt::Long;
 use Data::Dumper;
 
 =head1
@@ -11,7 +12,11 @@ https://github.com/venam
 =cut
 
 =head2
-Usage: perl $0 ascii > output.svg
+perl $0 -i <ascii> -f <fontname> -c <colors> -o <output>
+-h print help
+ascii: file or -
+fn: name or sauce
+colors: default or Xresources or custom file
 =cut
 =head3
 A bit inspired by:
@@ -21,24 +26,44 @@ https://ivanceras.github.io/elm-examples/elm-bot-lines/
 =head3
 Welcome to a horribly put together script.
 
-I won't polish it further, enjoy!
+TODO:  
+* Add ability to change font configurations (use from SAUCE line?)
+* Add ability to change the colorscheme
+* Polish script
 =cut
 
+my $input_file = "-";
+my $data   = "file.dat";
+my $font_name = 'Topaz a600a1200a400';
+my $colors = 'default';
+my $output_file = 'stdout';
+my $help = 0;
+GetOptions (
+        "input=s"  => \$input_file,
+        "font=s"   => \$font_name,
+        "colors=s" => \$colors,
+        "output=s" => \$output_file,
+        "help" => \$help
+) or die("Error in command line arguments\n");
 
-unless (scalar(@ARGV)) {
-    print "Usage: perl $0 ascii > output.svg\n";
-    exit;
+if ($help) {
+        print "perl $0 -i <ascii> -f <fontname> -c <colors> -o <output>
+        ascii: file or -
+        fn: name or sauce
+        colors: default or Xresources or custom file
+        -h print this help
+";
+        exit;
 }
 
 my $fh;
-if ($ARGV[0] eq '-') {
+if ($input_file eq '-') {
     $fh = \*STDIN;
 }
 else {
-    open ($fh, $ARGV[0]) or die $!;
+    open ($fh, $input_file) or die $!;
 }
 
-my $font_name = 'Topaz a600a1200a400';
 my $pixel_size = 12;
 my %colorscheme = (
     'black'     => '#342f28',
@@ -222,6 +247,13 @@ $output = "<?xml version='1.0' encoding='utf-8' standalone='no'?>
 
 
 $output .=  "</g>\n"."</svg>";
-print $output;
+
+if ($output_file eq 'stdout') {
+        print $output;
+} else {
+        open(OUT, '>', $output_file) or die("couldn't write output svg");
+        print OUT $output;
+        close(OUT);
+}
 
 1;
