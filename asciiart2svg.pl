@@ -38,34 +38,9 @@ my $font_name = 'Topaz a600a1200a400';
 my $colors = 'default';
 my $output_file = 'stdout';
 my $help = 0;
-GetOptions (
-        "input=s"  => \$input_file,
-        "font=s"   => \$font_name,
-        "colors=s" => \$colors,
-        "output=s" => \$output_file,
-        "help" => \$help
-) or die("Error in command line arguments\n");
 
-if ($help) {
-        print "perl $0 -i <ascii> -f <fontname> -c <colors> -o <output>
-        ascii: file or -
-        fn: name or sauce
-        colors: default or Xresources or custom file
-        -h print this help
-";
-        exit;
-}
-
-my $fh;
-if ($input_file eq '-') {
-    $fh = \*STDIN;
-}
-else {
-    open ($fh, $input_file) or die $!;
-}
-
-my $pixel_size = 12;
 my %colorscheme = (
+    'default_background' => '#1c1c1a',
     'black'     => '#342f28',
     'red'       => '#a36f48',
     'green'     => '#9b9630',
@@ -83,8 +58,83 @@ my %colorscheme = (
     'l_blue'    => '#595D64',
     'l_white'   => '#eaddc5'
 );
+my %COLORS_INDEXES = (
+	background => 'default_background',
+	color0 => 'black',
+	color1 => 'red',
+	color2 => 'green',
+	color3 => 'yellow',
+	color4 => 'cyan',
+	color5 => 'magenta',
+	color6 => 'blue',
+	color7 => 'white',
+	color8 => 'l_black',
+	color9 => 'l_red',
+	color10 => 'l_green',
+	color11 => 'l_yellow',
+	color12 => 'l_cyan',
+	color13 => 'l_magenta',
+	color14 => 'l_blue',
+	color15 => 'l_white'
+);
+
+
+GetOptions (
+        "input=s"  => \$input_file,
+        "font=s"   => \$font_name,
+        "colors=s" => \$colors,
+        "output=s" => \$output_file,
+        "help" => \$help
+) or die("Error in command line arguments\n");
+
+if ($help) {
+        print "perl $0 -i <ascii> -f <fontname> -c <colors> -o <output>
+        ascii: file or -
+        fn: name or sauce
+        colors: default or Xresources or custom file (formated like Xresources)
+        -h print this help
+";
+        exit;
+}
+
+sub extract_hex {
+        my ($source) = @_;
+        my $fh;
+        if ($source eq '-s') {
+                $fh = \*stdin;
+        }
+        else {
+                open($fh, "<", $source) or die "$!";
+        }
+        while (<$fh>) {
+                for my $i (keys %COLORS_INDEXES) {
+                        if (/^[^\!]*$i\s*:/) {
+                                chomp;
+                                $_ =~ /#([\da-f]{6})/i;
+                                $colorscheme{$COLORS_INDEXES{$i}} = '#'.lc($1);
+                        }
+                }
+        }
+}
+
+if (lc($colors) eq 'xresources') {
+        my $resources = "$ENV{HOME}/.Xresources";
+        extract_hex($resources);
+} elsif (lc($colors) ne 'default') {
+        # in case we get something that isn't default => load from file
+        extract_hex($colors);
+}
+
+my $fh;
+if ($input_file eq '-') {
+    $fh = \*STDIN;
+}
+else {
+    open ($fh, $input_file) or die $!;
+}
+
+my $pixel_size = 12;
 my @colors_index = ('black','red','green','yellow','cyan','magenta','blue','white');
-my $default_background = '#1c1c1a';
 my $pixel_hor_size = $pixel_size/2.3+1;
 my $b_hor_size = $pixel_size/2.1+1.5;
 my $pixel_ver_size = $pixel_size+1.2;
@@ -240,7 +290,7 @@ $output = "<?xml version='1.0' encoding='utf-8' standalone='no'?>
     version='1.1'
     width='$max_width'
     height='$max_height'
-    style='background-color: $default_background;'
+    style='background-color: ".$colorscheme{"default_background"}.";'
     xmlns='http://www.w3.org/2000/svg'>
 
 <g style='font-size: ${pixel_size}px'>".$back_output ."\n".$output;
